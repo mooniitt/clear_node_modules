@@ -1,0 +1,29 @@
+{
+  "name": "clear_node_modules",
+  "version": "1.0.0",
+  "description": "help you remove all large file of node_modules in dist dir!",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mooniitt/clear_node_modules.git"
+  },
+  "keywords": [
+    "clear",
+    "node_modules"
+  ],
+  "author": "taobeer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mooniitt/clear_node_modules/issues"
+  },
+  "homepage": "https://github.com/mooniitt/clear_node_modules#readme",
+  "dependencies": {
+    "rimraf": "^2.6.2"
+  }
+}
