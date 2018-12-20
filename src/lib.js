@@ -16,6 +16,7 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
       const subP = path.resolve(p, dir)
       if (dir === NODE_MODULES) {
         rimraf(subP, noop)
+        console.log(`${path.resolve(__filename, subP)} done!`)
         return
       }
       clearDir(subP)
@@ -24,7 +25,9 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
 }
 
 function clearFunc(disDir = './', LIMIT_SIZE = 0, NODE_MODULES = 'node_modules') {
-  return wrap(LIMIT_SIZE, NODE_MODULES)(disDir)
+  console.log('')
+  wrap(LIMIT_SIZE, NODE_MODULES)(disDir)
+  console.log('')
 }
 
 module.exports = clearFunc

@@ -1,6 +1,7 @@
 *.prettierrc
+*.tgz
+
 node_modules
 test
 yarn.lock
-
-*.tgz
+yarn-error.log
