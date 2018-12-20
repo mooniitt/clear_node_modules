@@ -1,6 +1,7 @@
 const fs = require('fs')
-const rimraf = require('rimraf')
 const path = require('path')
+const rimraf = require('rimraf')
+const chalk = require('chalk')
 
 const noop = () => {}
 
@@ -16,7 +17,7 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
       const subP = path.resolve(p, dir)
       if (dir === NODE_MODULES) {
         rimraf(subP, noop)
-        console.log(`${path.resolve(__filename, subP)} done!`)
+        console.log(`${path.resolve(__filename, subP)} ${chalk.green('Done!')}`)
         return
       }
       clearDir(subP)
