@@ -18,6 +18,8 @@ argv.forEach(arg => {
   if (arg.match(/^(-+|\/)(h(elp)?|\?)$/)) isHelp = true
 })
 
+if (argv.length < 1) isHelp = true
+
 if (isHelp) {
   log('')
   log('useage: cnm <path> <limit> <distDir>')
