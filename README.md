@@ -3,5 +3,5 @@
 ## help you remove all of node_modules
 
 ```
-cnm <path> <limit> <dist-directory>
+cnm <path> <limit(mb)> <dist-directory>
 ```

@@ -11,7 +11,7 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
     if (!fs.statSync(p).isDirectory()) return
     if (!fs.readdirSync(p).length) return
     const { size } = fs.statSync(p)
-    if (size < LIMIT_SIZE) return
+    if (size / 1024 < LIMIT_SIZE) return
     const dirList = fs.readdirSync(p)
     dirList.forEach(dir => {
       const subP = path.resolve(p, dir)

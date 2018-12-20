@@ -22,7 +22,7 @@ if (argv.length < 1) isHelp = true
 
 if (isHelp) {
   log('')
-  log('useage: cnm <path> <limit> <distDir>')
+  log('useage: cnm <path> <limit(mb)> <distDir>')
   log('')
   log('  delete the specified folder!')
   log('')
