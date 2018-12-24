@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const rimraf = require('rimraf')
-const chalk = require('chalk')
+const ora = require('ora')
 
 const noop = () => {}
 
@@ -16,8 +16,10 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
     dirList.forEach(dir => {
       const subP = path.resolve(p, dir)
       if (dir === NODE_MODULES) {
+        const dirPath = path.resolve(__filename, subP)
+        const spinner = ora(`Removing ${dirPath}`).start()
         rimraf(subP, noop)
-        console.log(`${path.resolve(__filename, subP)} ${chalk.green('Done!')}`)
+        spinner.succeed(`Done ${dirPath}`)
         return
       }
       clearDir(subP)
