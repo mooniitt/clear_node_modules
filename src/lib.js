@@ -23,6 +23,25 @@ function getDirSize(dir) {
 function wrap(LIMIT_SIZE, NODE_MODULES) {
   return async function clearDir(dirPath) {
     const tasks = [];
+    let totalCount = 0;
+    let doneCount = 0;
+
+    // 先扫描一次，预估总数
+    function scan(pathToScan) {
+      if (!fs.existsSync(pathToScan) || !fs.statSync(pathToScan).isDirectory())
+        return;
+      const entries = fs.readdirSync(pathToScan);
+      for (const entry of entries) {
+        const subPath = path.join(pathToScan, entry);
+        if (entry === NODE_MODULES && fs.existsSync(subPath)) {
+          totalCount++;
+        } else if (fs.statSync(subPath).isDirectory()) {
+          scan(subPath);
+        }
+      }
+    }
+
+    scan(dirPath);
 
     async function recurse(currentPath) {
       if (
@@ -40,11 +59,17 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
       for (const entry of entries) {
         const subPath = path.join(currentPath, entry);
         if (entry === NODE_MODULES && fs.statSync(subPath).isDirectory()) {
-          const spinner = ora(`Removing ${subPath}`).start();
+          const spinner = ora(
+            `(${++doneCount}/${totalCount}) Removing ${subPath}`
+          ).start();
           const task = rimrafAsync(subPath)
-            .then(() => spinner.succeed(`Done ${subPath}`))
+            .then(() =>
+              spinner.succeed(`(${doneCount}/${totalCount}) Done ${subPath}`)
+            )
             .catch((err) =>
-              spinner.fail(`Failed to remove ${subPath}: ${err.message}`)
+              spinner.fail(
+                `(${doneCount}/${totalCount}) Failed ${subPath}: ${err.message}`
+              )
             );
           tasks.push(task);
         } else if (fs.statSync(subPath).isDirectory()) {
