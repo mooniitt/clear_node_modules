@@ -1,39 +1,72 @@
-const fs = require('fs')
-const path = require('path')
-const rimraf = require('rimraf')
-const ora = require('ora')
+const fs = require("fs");
+const path = require("path");
+const rimraf = require("rimraf");
+const ora = require("ora");
+const { promisify } = require("util");
 
-const noop = () => {}
+const rimrafAsync = promisify(rimraf);
+
+function getDirSize(dir) {
+  let total = 0;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      total += getDirSize(fullPath);
+    } else {
+      total += fs.statSync(fullPath).size;
+    }
+  }
+  return total;
+}
 
 function wrap(LIMIT_SIZE, NODE_MODULES) {
-  return function clearDir(disDir) {
-    const p = path.resolve(disDir)
+  return async function clearDir(dirPath) {
+    const tasks = [];
 
-    if (!fs.existsSync(p)) return
-    if (!fs.statSync(p).isDirectory()) return
-    if (!fs.readdirSync(p).length) return
+    async function recurse(currentPath) {
+      if (
+        !fs.existsSync(currentPath) ||
+        !fs.statSync(currentPath).isDirectory()
+      )
+        return;
 
-    const { size } = fs.statSync(p)
-    if (size / 1024 < LIMIT_SIZE) return
-    const dirList = fs.readdirSync(p)
-    dirList.forEach(dir => {
-      const subP = path.resolve(p, dir)
-      if (dir === NODE_MODULES) {
-        const dirPath = path.resolve(__filename, subP)
-        const spinner = ora(`Removing ${dirPath}`).start()
-        rimraf(subP, noop)
-        spinner.succeed(`Done ${dirPath}`)
-        return
+      const entries = fs.readdirSync(currentPath);
+      if (entries.length === 0) return;
+
+      const dirSize = getDirSize(currentPath);
+      if (dirSize / 1024 < LIMIT_SIZE) return;
+
+      for (const entry of entries) {
+        const subPath = path.join(currentPath, entry);
+        if (entry === NODE_MODULES && fs.statSync(subPath).isDirectory()) {
+          const spinner = ora(`Removing ${subPath}`).start();
+          const task = rimrafAsync(subPath)
+            .then(() => spinner.succeed(`Done ${subPath}`))
+            .catch((err) =>
+              spinner.fail(`Failed to remove ${subPath}: ${err.message}`)
+            );
+          tasks.push(task);
+        } else if (fs.statSync(subPath).isDirectory()) {
+          await recurse(subPath);
+        }
       }
-      clearDir(subP)
-    })
-  }
+    }
+
+    await recurse(dirPath);
+    await Promise.all(tasks);
+  };
 }
 
-function clearFunc(disDir = './', LIMIT_SIZE = 0, NODE_MODULES = 'node_modules') {
-  console.log('')
-  wrap(LIMIT_SIZE, NODE_MODULES)(disDir)
-  console.log('')
+async function clearFunc(
+  disDir = "./",
+  LIMIT_SIZE = 0,
+  NODE_MODULES = "node_modules"
+) {
+  console.log("");
+  const clearDir = wrap(LIMIT_SIZE, NODE_MODULES);
+  await clearDir(path.resolve(disDir));
+  console.log("\nAll done!\n");
 }
 
-module.exports = clearFunc
+module.exports = clearFunc;

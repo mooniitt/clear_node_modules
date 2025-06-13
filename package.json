@@ -1,6 +1,6 @@
 {
   "name": "clear_node_modules",
-  "version": "1.1.8",
+  "version": "1.2.1",
   "description": "help you remove all large file of node_modules in dist dir!",
   "main": "index.js",
   "directories": {
@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/mooniitt/clear_node_modules#readme",
   "dependencies": {
-    "clear_node_modules": "^1.1.4",
+    "clear_node_modules": "^1.2.0",
     "ora": "^3.0.0",
     "rimraf": "^2.6.2"
   }
