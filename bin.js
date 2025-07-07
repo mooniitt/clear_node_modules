@@ -4,7 +4,7 @@ const path = require("path");
 const config = require("./config.json");
 const clearDir = require("./src/lib");
 
-const { version } = require("../package.json");
+const { version } = require("./package.json");
 
 const args = process.argv.slice(2);
 
