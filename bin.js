@@ -15,17 +15,17 @@ if (args.includes("-v") || args.includes("--version")) {
 
 const log = console.log;
 
-const DIST_DIR = path.resolve(__dirname, argv[0] || config.dist_dir_path);
-const LIMIT_SIZE = argv[1] || config.dist_dir_size;
-const NODE_MODULES = argv[2] || config.dist_dir_name;
+const DIST_DIR = path.resolve(process.cwd(), args[0] || config.dist_dir_path);
+const LIMIT_SIZE = args[1] || config.dist_dir_size;
+const NODE_MODULES = args[2] || config.dist_dir_name;
 
 let isHelp = false;
 
-argv.forEach((arg) => {
+args.forEach((arg) => {
   if (arg.match(/^(-+|\/)(h(elp)?|\?)$/)) isHelp = true;
 });
 
-if (argv.length < 1) isHelp = true;
+if (args.length < 1) isHelp = true;
 
 if (isHelp) {
   log("");
