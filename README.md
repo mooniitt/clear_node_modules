@@ -1,4 +1,8 @@
-# clear_node_modules (English)
+<details open>
+<summary><strong>English</strong></summary>
+<br>
+
+# clear_node_modules
 
 A command-line tool to delete all `node_modules` directories within a specified path.
 
@@ -49,9 +53,13 @@ cnm <path> [limit]
 
 MIT
 
----
+</details>
 
-# clear_node_modules (中文)
+<details>
+<summary><strong>中文 (Chinese)</strong></summary>
+<br>
+
+# clear_node_modules
 
 一个用于清理指定路径下所有 `node_modules` 目录的命令行工具。
 
@@ -101,3 +109,5 @@ cnm <path> [limit]
 ## 许可证
 
 MIT
+
+</details>

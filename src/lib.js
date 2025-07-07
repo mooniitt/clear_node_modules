@@ -53,12 +53,12 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
       const entries = fs.readdirSync(currentPath);
       if (entries.length === 0) return;
 
-      const dirSize = getDirSize(currentPath);
-      if (dirSize / 1024 < LIMIT_SIZE) return;
-
       for (const entry of entries) {
         const subPath = path.join(currentPath, entry);
         if (entry === NODE_MODULES && fs.statSync(subPath).isDirectory()) {
+          const dirSize = getDirSize(subPath);
+          if (dirSize / 1024 / 1024 < LIMIT_SIZE) continue;
+
           const spinner = ora(
             `(${++doneCount}/${totalCount}) Removing ${subPath}`
           ).start();
