@@ -1,6 +1,6 @@
 {
   "name": "clear_node_modules",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Recursively remove node_modules folders from current directory and subdirectories",
   "main": "index.js",
   "bin": {
@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/mooniitt/clear_node_modules#readme",
   "dependencies": {
-    "ora": "^3.0.0",
-    "rimraf": "^2.6.2"
+    "ora": "^5.4.1",
+    "rimraf": "^5.0.0"
   }
 }

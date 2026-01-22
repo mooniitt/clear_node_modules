@@ -1,85 +1,122 @@
 const fs = require("fs");
 const path = require("path");
-const rimraf = require("rimraf");
+const { rimraf } = require("rimraf");
 const ora = require("ora");
-const { promisify } = require("util");
 
-const rimrafAsync = promisify(rimraf);
+// 格式化文件大小
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + " MB";
+  return (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
+}
 
 function getDirSize(dir) {
   let total = 0;
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      total += getDirSize(fullPath);
-    } else {
-      total += fs.statSync(fullPath).size;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      try {
+        if (entry.isSymbolicLink()) {
+          continue;
+        } else if (entry.isDirectory()) {
+          total += getDirSize(fullPath);
+        } else if (entry.isFile()) {
+          total += fs.statSync(fullPath).size;
+        }
+      } catch (e) {
+        continue;
+      }
     }
+  } catch (e) {
+    // 目录不可读
   }
   return total;
 }
 
 function wrap(LIMIT_SIZE, NODE_MODULES) {
   return async function clearDir(dirPath) {
-    const tasks = [];
-    let totalCount = 0;
-    let doneCount = 0;
+    const foldersToDelete = [];
+    let totalFreed = 0;
+    let skippedCount = 0;
 
-    // 先扫描一次，预估总数
+    // 扫描阶段
+    const scanSpinner = ora("🔍 Scanning for node_modules...").start();
+    
     function scan(pathToScan) {
-      if (!fs.existsSync(pathToScan) || !fs.statSync(pathToScan).isDirectory())
-        return;
-      const entries = fs.readdirSync(pathToScan);
-      for (const entry of entries) {
-        const subPath = path.join(pathToScan, entry);
-        if (entry === NODE_MODULES && fs.existsSync(subPath)) {
-          totalCount++;
-        } else if (fs.statSync(subPath).isDirectory()) {
-          scan(subPath);
+      try {
+        if (!fs.existsSync(pathToScan)) return;
+        const stat = fs.lstatSync(pathToScan);
+        if (!stat.isDirectory() || stat.isSymbolicLink()) return;
+        
+        const entries = fs.readdirSync(pathToScan, { withFileTypes: true });
+        for (const entry of entries) {
+          const subPath = path.join(pathToScan, entry.name);
+          try {
+            if (entry.isSymbolicLink()) continue;
+            if (entry.name === NODE_MODULES && entry.isDirectory()) {
+              const size = getDirSize(subPath);
+              foldersToDelete.push({ path: subPath, size });
+            } else if (entry.isDirectory()) {
+              scan(subPath);
+            }
+          } catch (e) {
+            continue;
+          }
         }
+      } catch (e) {
+        // 忽略
       }
     }
 
     scan(dirPath);
+    
+    if (foldersToDelete.length === 0) {
+      scanSpinner.info("No node_modules found.");
+      return;
+    }
+    
+    scanSpinner.succeed(`Found ${foldersToDelete.length} node_modules folder(s)`);
+    console.log("");
 
-    async function recurse(currentPath) {
-      if (
-        !fs.existsSync(currentPath) ||
-        !fs.statSync(currentPath).isDirectory()
-      )
-        return;
+    // 串行删除，避免进度混乱
+    const total = foldersToDelete.length;
+    for (let i = 0; i < foldersToDelete.length; i++) {
+      const { path: folderPath, size } = foldersToDelete[i];
+      const sizeMB = size / 1024 / 1024;
+      const progress = `[${i + 1}/${total}]`;
+      
+      if (sizeMB < LIMIT_SIZE) {
+        skippedCount++;
+        console.log(`  ⏭️  ${progress} Skipped (${formatSize(size)}) ${folderPath}`);
+        continue;
+      }
 
-      const entries = fs.readdirSync(currentPath);
-      if (entries.length === 0) return;
-
-      for (const entry of entries) {
-        const subPath = path.join(currentPath, entry);
-        if (entry === NODE_MODULES && fs.statSync(subPath).isDirectory()) {
-          const dirSize = getDirSize(subPath);
-          if (dirSize / 1024 / 1024 < LIMIT_SIZE) continue;
-
-          const spinner = ora(
-            `(${++doneCount}/${totalCount}) Removing ${subPath}`
-          ).start();
-          const task = rimrafAsync(subPath)
-            .then(() =>
-              spinner.succeed(`(${doneCount}/${totalCount}) Done ${subPath}`)
-            )
-            .catch((err) =>
-              spinner.fail(
-                `(${doneCount}/${totalCount}) Failed ${subPath}: ${err.message}`
-              )
-            );
-          tasks.push(task);
-        } else if (fs.statSync(subPath).isDirectory()) {
-          await recurse(subPath);
-        }
+      const spinner = ora({
+        text: `${progress} Removing ${formatSize(size)} - ${folderPath}`,
+        prefixText: "  "
+      }).start();
+      
+      try {
+        await rimraf(folderPath);
+        totalFreed += size;
+        spinner.succeed(`${progress} Freed ${formatSize(size)} - ${folderPath}`);
+      } catch (err) {
+        spinner.fail(`${progress} Failed - ${folderPath}: ${err.message}`);
       }
     }
-
-    await recurse(dirPath);
-    await Promise.all(tasks);
+    
+    // 汇总信息
+    console.log("");
+    console.log("─".repeat(50));
+    console.log(`  ✨ Completed!`);
+    console.log(`     📁 Total: ${total} folder(s)`);
+    if (skippedCount > 0) {
+      console.log(`     ⏭️  Skipped: ${skippedCount}`);
+    }
+    console.log(`     💾 Freed: ${formatSize(totalFreed)}`);
+    console.log("─".repeat(50));
   };
 }
 
@@ -89,9 +126,18 @@ async function clearFunc(
   NODE_MODULES = "node_modules"
 ) {
   console.log("");
+  console.log("🧹 Clear Node Modules");
+  console.log("─".repeat(50));
+  console.log(`  📂 Target: ${path.resolve(disDir)}`);
+  if (LIMIT_SIZE > 0) {
+    console.log(`  📏 Min size: ${LIMIT_SIZE} MB`);
+  }
+  console.log("─".repeat(50));
+  console.log("");
+  
   const clearDir = wrap(LIMIT_SIZE, NODE_MODULES);
   await clearDir(path.resolve(disDir));
-  console.log("\nAll done!\n");
+  console.log("");
 }
 
 module.exports = clearFunc;
