@@ -20,7 +20,7 @@ if (isHelp) {
   console.log(`
 cnm v${version} - Clear Node Modules
 
-Usage: npx cnms [path] [limit] [folder]
+Usage: npx clear_node_modules [path] [limit] [folder]
 
 Arguments:
   path    Target directory (default: current directory)
@@ -28,11 +28,11 @@ Arguments:
   folder  Folder name to delete (default: node_modules)
 
 Examples:
-  npx cnms              # Clear all node_modules in current dir
-  npx cnms ./projects   # Clear in specific directory
-  npx cnms ./ 100       # Only delete if > 100MB
+  npx clear_node_modules              # Clear all node_modules in current dir
+  npx clear_node_modules ./projects   # Clear in specific directory
+  npx clear_node_modules ./ 100       # Only delete if > 100MB
 
-After global install (npm i -g cnms):
+After global install (npm i -g clear_node_modules):
   cnm                   # Same as above, shorter command
 `);
   process.exit(0);
