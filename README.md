@@ -1,113 +1,162 @@
+# clear_node_modules
+
+🧹 Recursively remove all `node_modules` folders from your projects to free up disk space.
+
+[![npm version](https://img.shields.io/npm/v/clear_node_modules.svg)](https://www.npmjs.com/package/clear_node_modules)
+[![npm downloads](https://img.shields.io/npm/dm/clear_node_modules.svg)](https://www.npmjs.com/package/clear_node_modules)
+
+## ✨ Features
+
+- 🔍 Recursively scans and deletes all `node_modules` folders
+- 📏 Optional size limit - only delete folders larger than N MB
+- 📊 Beautiful progress display with real-time scanning stats
+- 💾 Shows total freed disk space
+- 🚀 Zero config - just run and go!
+
+---
+
 <details open>
 <summary><strong>English</strong></summary>
 <br>
 
-# clear_node_modules
+## 🚀 Quick Start (npx)
 
-A command-line tool to delete all `node_modules` directories within a specified path.
-
-## Features
-
-- Recursively finds and deletes all `node_modules` folders.
-- Allows setting a size limit to only delete `node_modules` larger than a certain size.
-- Simple and easy-to-use command-line interface.
-
-## Installation
+No installation required! Just run:
 
 ```bash
-npm install clear_node_modules -g
+npx clear_node_modules@latest
 ```
 
-## Usage
+This will scan the current directory and all subdirectories for `node_modules` and delete them.
+
+## 📦 Installation (Global)
 
 ```bash
-cnm <path> [limit]
+npm install -g clear_node_modules
+```
+
+After global install, you can use the shorter `cnm` command:
+
+```bash
+cnm
+```
+
+## 📖 Usage
+
+```bash
+npx clear_node_modules@latest [path] [limit] [folder]
 ```
 
 ### Arguments
 
-- `path`: The directory path to clean up (required).
-- `limit`: The size limit in MB. Only `node_modules` directories larger than this size will be deleted (optional).
+| Argument | Description                  | Default           |
+| -------- | ---------------------------- | ----------------- |
+| `path`   | Target directory to scan     | Current directory |
+| `limit`  | Minimum size in MB to delete | 0 (delete all)    |
+| `folder` | Folder name to delete        | `node_modules`    |
 
 ### Examples
 
-1.  Delete all `node_modules` in the current directory:
+```bash
+# Delete all node_modules in current directory
+npx clear_node_modules@latest
 
-    ```bash
-    cnm .
-    ```
+# Delete all node_modules in a specific directory
+npx clear_node_modules@latest ~/projects
 
-2.  Delete all `node_modules` in a specific directory:
+# Only delete node_modules larger than 100MB
+npx clear_node_modules@latest ./ 100
 
-    ```bash
-    cnm /path/to/your/projects
-    ```
+# Delete a custom folder name
+npx clear_node_modules@latest ./ 0 dist
+```
 
-3.  Delete all `node_modules` larger than 100MB in a specific directory:
+## 📺 Output Example
 
-    ```bash
-    cnm /path/to/your/projects 100
-    ```
+```
+🧹 Clear Node Modules
+──────────────────────────────────────────────────
+  📂 Target: /Users/you/projects
+──────────────────────────────────────────────────
 
-## License
+✔ Scanned 1234 dirs, found 5 node_modules
 
-MIT
+  ✔ [1/5] Freed 234.5 MB - /path/to/project1/node_modules
+  ✔ [2/5] Freed 567.8 MB - /path/to/project2/node_modules
+  ⏭️ [3/5] Skipped (12.3 MB) /path/to/small-project/node_modules
+  ...
+
+──────────────────────────────────────────────────
+  ✨ Completed!
+     📁 Total: 5 folder(s)
+     💾 Freed: 1.2 GB
+──────────────────────────────────────────────────
+```
 
 </details>
+
+---
 
 <details>
 <summary><strong>中文 (Chinese)</strong></summary>
 <br>
 
-# clear_node_modules
+## 🚀 快速开始 (npx)
 
-一个用于清理指定路径下所有 `node_modules` 目录的命令行工具。
-
-## 功能特点
-
-- 递归查找并删除所有 `node_modules` 文件夹。
-- 支持设置大小限制，只删除大于特定大小的 `node_modules`。
-- 简单易用的命令行界面。
-
-## 安装
+无需安装，直接运行：
 
 ```bash
-npm install clear_node_modules -g
+npx clear_node_modules@latest
 ```
 
-## 使用方法
+这会扫描当前目录及所有子目录中的 `node_modules` 并删除它们。
+
+## 📦 全局安装
 
 ```bash
-cnm <path> [limit]
+npm install -g clear_node_modules
+```
+
+全局安装后可以使用更短的 `cnm` 命令：
+
+```bash
+cnm
+```
+
+## 📖 使用方法
+
+```bash
+npx clear_node_modules@latest [路径] [大小限制] [文件夹名]
 ```
 
 ### 参数说明
 
-- `path`: 要清理的目录路径 (必需)。
-- `limit`: 文件大小限制 (单位 MB)。只有大于此大小的 `node_modules` 目录才会被删除 (可选)。
+| 参数       | 描述               | 默认值         |
+| ---------- | ------------------ | -------------- |
+| `路径`     | 要扫描的目标目录   | 当前目录       |
+| `大小限制` | 最小删除大小 (MB)  | 0 (删除所有)   |
+| `文件夹名` | 要删除的文件夹名称 | `node_modules` |
 
 ### 使用示例
 
-1.  删除当前目录下的所有 `node_modules`：
+```bash
+# 删除当前目录下的所有 node_modules
+npx clear_node_modules@latest
 
-    ```bash
-    cnm .
-    ```
+# 删除指定目录下的所有 node_modules
+npx clear_node_modules@latest ~/projects
 
-2.  删除指定目录下的所有 `node_modules`：
+# 只删除大于 100MB 的 node_modules
+npx clear_node_modules@latest ./ 100
 
-    ```bash
-    cnm /path/to/your/projects
-    ```
-
-3.  删除指定目录下所有大于 100MB 的 `node_modules`：
-
-    ```bash
-    cnm /path/to/your/projects 100
-    ```
-
-## 许可证
-
-MIT
+# 删除自定义文件夹名
+npx clear_node_modules@latest ./ 0 dist
+```
 
 </details>
+
+---
+
+## 📄 License
+
+MIT
