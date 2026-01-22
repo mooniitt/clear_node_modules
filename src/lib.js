@@ -40,15 +40,25 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
     const foldersToDelete = [];
     let totalFreed = 0;
     let skippedCount = 0;
+    let scannedDirs = 0;
 
     // 扫描阶段
-    const scanSpinner = ora("🔍 Scanning for node_modules...").start();
+    const scanSpinner = ora("🔍 Scanning...").start();
+    
+    function updateScanProgress() {
+      scanSpinner.text = `🔍 Scanning... (${scannedDirs} dirs, found ${foldersToDelete.length} node_modules)`;
+    }
     
     function scan(pathToScan) {
       try {
         if (!fs.existsSync(pathToScan)) return;
         const stat = fs.lstatSync(pathToScan);
         if (!stat.isDirectory() || stat.isSymbolicLink()) return;
+        
+        scannedDirs++;
+        if (scannedDirs % 100 === 0) {
+          updateScanProgress();
+        }
         
         const entries = fs.readdirSync(pathToScan, { withFileTypes: true });
         for (const entry of entries) {
@@ -58,6 +68,7 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
             if (entry.name === NODE_MODULES && entry.isDirectory()) {
               const size = getDirSize(subPath);
               foldersToDelete.push({ path: subPath, size });
+              updateScanProgress();
             } else if (entry.isDirectory()) {
               scan(subPath);
             }
@@ -73,11 +84,11 @@ function wrap(LIMIT_SIZE, NODE_MODULES) {
     scan(dirPath);
     
     if (foldersToDelete.length === 0) {
-      scanSpinner.info("No node_modules found.");
+      scanSpinner.info(`Scanned ${scannedDirs} directories, no node_modules found.`);
       return;
     }
     
-    scanSpinner.succeed(`Found ${foldersToDelete.length} node_modules folder(s)`);
+    scanSpinner.succeed(`Scanned ${scannedDirs} dirs, found ${foldersToDelete.length} node_modules`);
     console.log("");
 
     // 串行删除，避免进度混乱
